@@ -1,13 +1,19 @@
 ---
 title: "Is your Classification Model making lucky guesses (Part 1)"
-author: "Shaheen (gshaheen@microsoft.com)"
+author: "Shaheen"
 date: "Monday, March 01, 2016"
 output: html_document
 ---
 
+### Is your Classification Model making lucky guesses (Part 1)  
+Author: Shaheen Gauher
 
-When we build a classification model, often we have to prove that our model is detecting the difference between different classes by learning from the data and not just making lucky guesses. How do we compare if our model performs better than a classifier built by assigning labels to the instances through random guess. We can build a random guess classifier by say randomly assigning half of the labels to positive and half to negative. What would the accuracy of this classifier be compared to our machine learning model? In the example below I will use iris data set to build a classification model using Decision Forest. Then I will compare the accuracy of this machine learning model to the accuracy of a random guess classifier.The iris data set contains 3 classes of 50 instances each, where each class refers to a type of iris plant.
 
+When we build a classification model, often we have to prove that our model is detecting the difference between different classes by learning from the data and not just making lucky guesses. How do we compare if our model performs better than a classifier built by assigning labels to the instances through random guess. We can build a random guess classifier by say randomly assigning half of the labels to positive and half to negative. What would the accuracy of this classifier be compared to our machine learning model? In the example below I will use iris data set to build a classification model using Decision Forest. Then I will compare the accuracy of this machine learning model to the accuracy of a random guess classifier.The iris data set contains 3 classes of 50 instances each, where each class refers to a type of iris plant.  
+
+Note: The code below requires MRS (Microsoft R Server, formally Revolution R Enterprise (RRE))  
+http://blog.revolutionanalytics.com/2016/01/microsoft-r-open.html    
+MRS can be downloaded from https://www.dreamspark.com/Product/Product.aspx?productid=105
 
 
 ```{r}
@@ -49,7 +55,7 @@ train_modelout = rxPredict(ML_model, data = trainingdata, outData = NULL, overwr
           writeModelVars = TRUE)
 #class(train_modelout) #"RxXdfData"
 
-#create a data frame containg 2 columns with actual and predicted values
+#create a data frame containing 2 columns with actual and predicted values
 df_for_cm = rxDataStep(inData=train_modelout,outFile=NULL,varsToKeep=c('V5_Pred','V5'))
 #head(df_for_cm,2)
 actual = df_for_cm$V5
