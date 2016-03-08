@@ -1,0 +1,72 @@
+---
+title: "Is your Classification Model making lucky guesses (Part 1)"
+author: "Shaheen (gshaheen@microsoft.com)"
+date: "Monday, March 01, 2016"
+output: html_document
+---
+
+
+When we build a classification model, often we have to prove that our model is detecting the difference between different classes by learning from the data and not just making lucky guesses. How do we compare if our model performs better than a classifier built by assigning labels to the instances through random guess. We can build a random guess classifier by say randomly assigning half of the labels to positive and half to negative. What would the accuracy of this classifier be compared to our machine learning model? In the example below I will use iris data set to build a classification model using Decision Forest. Then I will compare the accuracy of this machine learning model to the accuracy of a random guess classifier.The iris data set contains 3 classes of 50 instances each, where each class refers to a type of iris plant.
+
+
+
+```{r}
+#download data from
+#https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data
+datad_iris=read.table("https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data", 
+                        header=F,sep=",",na.strings="NA")  #150 rows and 5 columns fir iris data
+class(datad_iris)  #"data.frame"
+#convert data frame to xdf object using rxDataStep() 
+pathc=getwd()
+iris_xdf =file.path(pathc,'iris_xdf.xdf') 
+data_iris = rxDataStep(inData = datad_iris, outFile = iris_xdf ,
+                  rowsPerRead=50, overwrite=TRUE)
+class(data_iris)  # "RxXdfData"
+
+#split the data into training and testing data.
+#create a col called 'splitcol'to use for splitting
+rxDataStep(inData=data_iris,outFile=data_iris,transforms=list(splitcol=factor(rbinom(length(V1),1,0.8),
+                                                   labels=c('test','train'))),overwrite=T)
+#split using the col "splitcol" 
+#rxSplit() -- Split an input '.xdf' file or data frame into multiple '.xdf' files or a list of data frames.
+listofxdfs = rxSplit(data_iris,outFileBase='irissplit',outFileSuffixes=c("Train", "Test"),
+                       splitByFactor = "splitcol",overwrite=T )
+
+trainingdata = listofxdfs[[2]]
+testdata = listofxdfs[[1]]
+
+#Build Machine Learning model - Decision Forest
+formula = as.formula(paste('V5',paste(rxGetVarNames(data_iris)[c(1:(ncol(data_iris)-2))],collapse=' + '),sep=' ~ '))
+formula
+Forest_model <- rxDForest(formula , data = trainingdata, seed = 10, cp = 0.01, nTree = 50, mTry = 2,                   
+                    overwrite = TRUE, reportProgress = 0)
+class(Forest_model) #"rxDForest" 
+ML_model = Forest_model
+ML_model
+
+#Compute the accuracy of the model and compare to the accuracy of a random guess classifier.
+train_modelout = rxPredict(ML_model, data = trainingdata, outData = NULL, overwrite = TRUE,
+          writeModelVars = TRUE)
+#class(train_modelout) #"RxXdfData"
+
+#create a data frame containg 2 columns with actual and predicted values
+df_for_cm = rxDataStep(inData=train_modelout,outFile=NULL,varsToKeep=c('V5_Pred','V5'))
+#head(df_for_cm,2)
+actual = df_for_cm$V5
+predicted = df_for_cm$V5_Pred
+cmatrix = as.matrix(table(Actual=actual, Predicted=predicted)) #create a confusion matrix
+cmatrix
+
+#Compute accuracy of the model
+accuracy = sum(diag(cmatrix)) / sum(cmatrix)
+cat('accuracy=',accuracy,'\n')
+
+#Accuracy of a random guess classifier
+num_classes = nrow(cmatrix)  #number of classs
+accuracy_randgs = 1 / num_classes   
+cat('accuracy_random_guess = ',accuracy_randgs,'\n')
+
+#remove file
+if(file.exists("iris_xdf.xdf") ) {  file.remove("iris_xdf.xdf") }
+```
+
