@@ -29,7 +29,7 @@ data_iris = rxDataStep(inData = datad_iris, outFile = iris_xdf ,
                   rowsPerRead=50, overwrite=TRUE)
 class(data_iris)  # "RxXdfData"
 
-#rename the label col 'V5' as col_label
+#rename the label col 'V5' as 'LabelsCol'
 names(data_iris)[names(data_iris)=='V5'] = 'LabelsCol'
 
 
