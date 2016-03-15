@@ -1,4 +1,4 @@
-# Purpose: Evaluate your classifcation model against some baseline metrics
+# Purpose: Evaluate your classification model against some baseline metrics
 #          Establish that your model is not just making lucky guesses but is significantly better than a random model
 # Author : Shaheen Gauher - Data Scientist at Microsoft
 
