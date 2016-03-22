@@ -17,8 +17,8 @@ datad_adult = datad_adult[ , !(names(datad_adult) %in% dropcols)]
 
 class(datad_adult)  #"data.frame"
 #convert data frame to xdf object using rxDataStep() 
-pathc=getwd()
-adult_xdf =file.path(pathc,'adult_xdf.xdf') 
+pathc     = getwd()
+adult_xdf = file.path(pathc,'adult_xdf.xdf') 
 data_adult = rxDataStep(inData = datad_adult, outFile = adult_xdf ,
                        rowsPerRead=1000, overwrite=TRUE)
 class(data_adult)  # "RxXdfData"
@@ -54,7 +54,7 @@ class(DForest_model) #"rxDForest"
 ML_model = DForest_model
 ML_model
 
-#Compute the accuracy of the model and compare to Kappa for the model
+#Compute the accuracy of the model and compare to accuracy of trivial models
 train_modelout = rxPredict(ML_model, data = trainingdata, outData = 'temp.xdf', overwrite = TRUE, writeModelVars = TRUE, predVarNames = "PredictedLabels",type='class')
 class(train_modelout) #"RxXdfData"
 
