@@ -8,17 +8,20 @@ computeaccuracy <- function(ML_model,scoredata){
   modelout_xdf = RxXdfData("modelout_xdf.xdf") #initialise xdf object 
   rxPredict(ML_model, data = scoredata, outData = modelout_xdf, overwrite = TRUE,
             writeModelVars = TRUE, reportProgress = 0)
+  #head(modelout_xdf)  #contains the actual and predicted cols
   
   #get the columns "LabelsCol_Pred" and "LabelsCol" from modelout_xdf
-  results_model_df = rxDataStep(inData=modelout_xdf,outFile=NULL,varsToKeep=c('LabelsCol_Pred','LabelsCol'),reportProgress = 0)
-  head(results_model_df)
   
-  actual    = results_model_df$LabelsCol
-  predicted = results_model_df$LabelsCol_Pred
-  cm = as.matrix(table(Actual=actual, Predicted=predicted)) #create a confusion matrix
+  
+  mytemp_xdf = RxXdfData("mytemp_xdf.xdf") #initialise an xdf object 
+  results_model = rxDataStep(inData = modelout_xdf, outFile = mytemp_xdf,varsToKeep = c('LabelsCol_Pred','LabelsCol'),
+                             overwrite = TRUE, reportProgress = 0 )
+  
+  cm = rxCrossTabs(~LabelsCol_Pred:LabelsCol,results_model,returnXtabs = T, reportProgress=0) #create a confusion matrix
   cm
   accuracy = sum(diag(cm)) / sum(cm)
   accuracy
+  
   #cat('The model produced an accuracy = ',accuracy,'\n')
   return(accuracy)
 }
